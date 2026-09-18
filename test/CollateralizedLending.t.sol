@@ -81,7 +81,13 @@ contract CollateralizedLendingTest {
         vm.prank(ALICE);
         market.depositCollateral(address(weth), 1 ether);
 
-        vm.expectRevert(CollateralizedLending.BorrowLimitExceeded.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CollateralizedLending.BorrowLimitExceeded.selector,
+                1_501e18,
+                1_500e18
+            )
+        );
         vm.prank(ALICE);
         market.borrow(address(usdc), 1_501e6);
     }
@@ -174,7 +180,12 @@ contract CollateralizedLendingTest {
         vm.warp(block.timestamp + 2 days);
         oracle.setPriceWithTimestamp(address(weth), WETH_PRICE, block.timestamp - 2 days);
 
-        vm.expectRevert(CollateralizedLending.StalePrice.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CollateralizedLending.StalePrice.selector,
+                address(weth)
+            )
+        );
         vm.prank(ALICE);
         market.borrow(address(usdc), 1_000e6);
     }
@@ -184,7 +195,12 @@ contract CollateralizedLendingTest {
         market.depositCollateral(address(weth), 1 ether);
         oracle.clearPrice(address(usdc));
 
-        vm.expectRevert(CollateralizedLending.MissingPrice.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CollateralizedLending.MissingPrice.selector,
+                address(usdc)
+            )
+        );
         vm.prank(ALICE);
         market.borrow(address(usdc), 1_000e6);
     }
@@ -195,7 +211,12 @@ contract CollateralizedLendingTest {
 
         vm.startPrank(ALICE);
         unsupported.approve(address(market), type(uint256).max);
-        vm.expectRevert(CollateralizedLending.UnsupportedAsset.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CollateralizedLending.UnsupportedAsset.selector,
+                address(unsupported)
+            )
+        );
         market.depositCollateral(address(unsupported), 1 ether);
         vm.stopPrank();
     }
